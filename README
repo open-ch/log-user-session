@@ -1,0 +1,34 @@
+log-user-session README
+-----------------------
+log-user-session is a program to store the log of a shell session (e.g via ssh)
+e.g. for auditing purposes.
+
+Current maintainer:
+   Konrad Bucheli <kb@open.ch>
+
+Website:
+   https://github.com/open-ch/log-user-session
+
+
+Installation
+------------
+If you want to install log-user-session from source, proceed as follows:
+
+1. Run ./configure with the correct arguments
+   (see: ./configure --help)
+
+2. Run make; make install
+
+3. Have a look at the log-user-session(8) manual for usage help, create the
+   configuration file /etc/log-user-session.conf and integrate the tool into
+   your sshd configuration.
+
+
+Supported Platforms
+-------------------
+This tool has been so far only tested on Linux.
+
+
+Credits
+-------
+Konrad Bucheli (kb@open.ch)

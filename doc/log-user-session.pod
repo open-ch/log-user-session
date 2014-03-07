@@ -1,0 +1,125 @@
+=head1 NAME
+
+log-user-session - create a log of a (ssh) session
+
+=head1 SYNOPSIS
+
+B<log-user-session> [ I<command> ]
+
+Intended to be used via ssh, either as forced command in sshd_config:
+
+C<ForceCommand log-user-session>
+
+or in ~/.ssh/autorized_keys
+
+C<command="log-user-session" ssh-rsa AAAAB3Nz...>
+
+
+=head1 DESCRIPTION
+
+B<log-user-session> is a program to store the log of a shell session (e.g via ssh) e.g. for auditing
+purposes. Unlike session logging by B<script> the logs of B<log-user-session> can be made temper proof
+if the log directory and the configuration file are not accessible by the user. The B<log-user-session>
+process itselfs runs as root (setuid) so it cannot be killed by the user.
+
+For interactive sessions only the output is logged. The input is echoed by the shell, except for
+passwords (which usually should not be logged anyway). For remote commands the command itself, the
+input and the output are stored. It can be configured to store only the remote command as the
+data transfered (e.g. by C<scp> or C<rsync>) can be large and is usually not as interesting as the remote
+command as such.
+
+The B<log-user-session> program will executed any provided arguments as commands on the shell of the user.
+If no command is provided, then the command in the environment variable C<SSH_ORIGINAL_COMMAND> is executed.
+This variable is set by C<sshd> when a forced command is started. If this is not set, then an interactive shell
+is started.
+
+=head1 CONFIGURATION
+
+The configuration file is B</etc/log-user-session.conf>. The format of the configuration entries is
+C<key = value>. Comments are lines that start with #.
+
+=head2 LogFile
+
+C<LogFile = /var/log/user-session/%h-%u-%y%m%d-%H%M%S-%c-%p.log>
+
+The path of the log file can be specified with several variable format options (% + letter). Non-exisiting directories are
+created on first use and can only be accessed by root.
+
+Following format options are valid:
+
+=over
+
+=item B<%u> (user)
+
+will be replaced by user name
+
+=item B<%h> (hostname)
+
+will be replaced by the name of host
+
+=item B<%c> (client)
+
+will be replaced by the name of host
+
+=item B<%p> (process id)
+
+will be replaced by the pid of the current instance of B<log-user-session>
+
+=item B<%y> (year)
+
+will be replaced by the current year (4 digits)
+
+=item B<%m> (month)
+
+will be replaced by the current month (2 digits)
+
+=item B<%d> (day)
+
+will be replaced by the current day of month (2 digits)
+
+=item B<%H> (hour)
+
+will be replaced by the current hour (2 digits, 24 hours format)
+
+=item B<%M> (minute)
+
+will be replaced by the current minute (2 digits)
+
+=item B<%S> (second)
+
+will be replaced by the current second (2 digits)
+
+
+=item B<%s> (unix timestamp)
+
+will be replaced by the number of seconds since 01.01.1970 00:00:00 UTC
+
+=item B<%%> (literal %)
+
+will be replaced by C<%>
+
+=back
+
+=head2 LogRemoteCommandData
+
+C<LogRemoteCommandData = 1>
+
+Log also the input and output of remote commands.
+
+
+=head1 AUTHORS
+
+=over
+
+=item *
+
+Konrad Bucheli, Open Systems AG
+
+=back
+
+B<website: L<https://github.com/open-ch/log-user-session>>
+
+
+=head1 SEE ALSO
+
+C<sshd(8)>, C<script(1)>
