@@ -1,3 +1,7 @@
+2014-04-10 Konrad Bucheli <kb@open.ch>
+	* do not print client host if SSH_CLIENT is not set
+
+
 2014-03-07 Konrad Bucheli <kb@open.ch>
 
 	* Initial version

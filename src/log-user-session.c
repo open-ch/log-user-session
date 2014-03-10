@@ -31,7 +31,7 @@
  *
  *
  * Written by Konrad Bucheli (kb@open.ch), January 2014
- * 
+ *
  *
  * Process Hierarchy
  *
@@ -721,9 +721,11 @@ char *prepare_log_file_name(const char *template) {
                 }
                 /* add client host */
                 else if ('c' == *pos_t) {
-                    int r = snprintf(pos_l, remaining, "%s", opt_client);
-                    if (r >= remaining) break;
-                    while('\0' != *pos_l) pos_l++;
+                    if (opt_client) {
+                        int r = snprintf(pos_l, remaining, "%s", opt_client);
+                        if (r >= remaining) break;
+                        while('\0' != *pos_l) pos_l++;
+                    }
                 }
                 /* add hostname */
                 else if ('h' == *pos_t) {
