@@ -28,7 +28,7 @@ input and the output are stored. It can be configured to store only the remote c
 data transfered (e.g. by C<scp> or C<rsync>) can be large and is usually not as interesting as the remote
 command as such.
 
-The B<log-user-session> program will executed any provided arguments as commands on the shell of the user.
+The B<log-user-session> program will execute optionally provided arguments as command on the shell of the user.
 If no command is provided, then the command in the environment variable C<SSH_ORIGINAL_COMMAND> is executed.
 This variable is set by C<sshd> when a forced command is started. If this is not set, then an interactive shell
 is started.

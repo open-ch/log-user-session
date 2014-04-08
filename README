@@ -1,7 +1,8 @@
 log-user-session README
 -----------------------
-log-user-session is a program to store the log of a shell session (e.g via ssh)
-e.g. for auditing purposes.
+log-user-session is a program to store the content of a shell session (e.g via
+ssh) e.g. for auditing purposes. The tool is intended to be started by the ssh
+server daemon. The log is tamper-proof for non-root users.
 
 Current maintainer:
    Konrad Bucheli <kb@open.ch>
