@@ -555,7 +555,7 @@ void prepare_dir(const char *dir) {
     if (mkdir(dir, 0700) != 0) perror(dir);
 }
 
-void start_logger(const char *log_file, const char *original_command) {
+void start_logger(const char *log_file, const char *original_command, uid_t uid) {
 
     struct fd_pair input;
     struct fd_pair output[2];
@@ -566,6 +566,7 @@ void start_logger(const char *log_file, const char *original_command) {
     if (has_tty) {
         /* use psedo terminal for communication */
         input = clone_pseudo_terminal(STDIN_FILENO);
+        if (uid && fchown(input.read_side, uid, -1) < 0) perror("change owner of tty to user");
         output[0].write_side = dup(input.read_side);
         output[0].read_side =  dup(input.write_side);
         output_count = 1;
@@ -1026,7 +1027,7 @@ int main(int argc, char **argv) {
     }
 
     /* fork logger */
-    start_logger(opt_logfile, original_command);
+    start_logger(opt_logfile, original_command, uid);
 
     /* back to original user */
     if (uid && setuid(uid) < 0) {

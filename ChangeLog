@@ -1,5 +1,9 @@
-2014-04-10 Konrad Bucheli <kb@open.ch>
-	* do not print client host if SSH_CLIENT is not set
+2014-04-08 Konrad Bucheli <kb@open.ch>
+	* (start_logger) set owner of new tty to user (fixes screen)
+
+
+2014-03-10 Konrad Bucheli <kb@open.ch>
+	* (process_options) do not print client host if SSH_CLIENT is not set
 
 
 2014-03-07 Konrad Bucheli <kb@open.ch>
