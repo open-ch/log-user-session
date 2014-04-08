@@ -1,3 +1,6 @@
+ Version 0.2 (8 April 2014)
+* Fix screen usage.
+
  Version 0.1 (7 March 2014)
 * Initial release of log-user-session, a tool which allows log user sessions 
   (e.g. ssh sessions) tamper-proof for audit purposes.
