@@ -1,4 +1,7 @@
 2014-05-02 Konrad Bucheli <kb@open.ch>
+        * Version 0.3
+
+2014-05-02 Konrad Bucheli <kb@open.ch>
 	* (run_log_forwarder) avoid runaway processes
 
 2014-04-08 Konrad Bucheli <kb@open.ch>
