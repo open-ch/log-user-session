@@ -304,6 +304,7 @@ void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct f
 
     fd_set read_set;
     fd_set write_set;
+    struct timeval timeout;
 
     int stdin_open    = 1;
     int stdout_open   = 1;
@@ -359,14 +360,22 @@ void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct f
         if (stdout_buffer.head && stdout_open)     FD_SET(STDOUT_FILENO,        &write_set);
         if (stderr_buffer.head && stderr_open)     FD_SET(STDERR_FILENO,        &write_set);
 
+        /* timeout to avoid hanging processes if PPID changes to 1 between getppid and select */
+        timeout.tv_sec = 300;
+        timeout.tv_usec = 0;
+
         /* what to do */
-        int result = select(max_fd, &read_set, &write_set, NULL, NULL);
+        int result = select(max_fd, &read_set, &write_set, NULL, &timeout);
 
         /* error handling */
         if (result < 0) {
             if (EINTR == errno) continue;
             perror("select");
             break;
+        }
+        /* timeout */
+        else if (0 == result) {
+            continue;
         }
 
         /* non-blocking write */
