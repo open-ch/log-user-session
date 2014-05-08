@@ -1,3 +1,6 @@
+2014-05-08 Konrad Bucheli <kb@open.ch>
+	* (process_options) fix login shell detection
+
 2014-05-02 Konrad Bucheli <kb@open.ch>
         * Version 0.3
 

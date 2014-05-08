@@ -995,7 +995,7 @@ void process_options(int argc, char **argv) {
     else {
         if (!command) {
             char *prompt = getenv("PS1");
-            if (prompt && *prompt != '\0') {
+            if (!prompt || *prompt == '\0') {
                 login_shell = 1;
             }
         }
