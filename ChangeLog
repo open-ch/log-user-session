@@ -1,3 +1,7 @@
+2014-10-03 Konrad Bucheli <kb@open.ch>
+	* add configuration option LogNonInteractiveData
+	* change default for configuration option LogRemoteCommandData to on
+
 2014-05-12 Konrad Bucheli <kb@open.ch>
 	* Version 0.4
 

@@ -104,7 +104,13 @@ will be replaced by C<%>
 
 C<LogRemoteCommandData = 1>
 
-Log also the input and output of remote commands.
+Log also the input and output of remote commands (by default on).
+
+=head2 LogNonInteractiveData
+
+C<LogNonInteractiveData = 1>
+
+Log also data of non-interactive sessions (by default on).
 
 
 =head1 AUTHORS

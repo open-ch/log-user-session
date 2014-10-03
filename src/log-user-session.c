@@ -120,7 +120,8 @@ char *opt_client        = NULL;
 char *opt_logfile       = NULL;
 char **opt_argv         = NULL;
 
-int opt_log_remote_command_data = 0;
+int opt_log_remote_command_data = 1;
+int opt_log_non_interactive_data = 1;
 
 
 struct buffer;
@@ -298,7 +299,7 @@ int write_from_buffer(int fd, struct list *list, int log) {
 }
 
 void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct fd_pair *output,
-                       struct fd_pair *error, int interactive) {
+                       struct fd_pair *error, int do_log_data) {
 
     int i;
 
@@ -395,7 +396,7 @@ void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct f
         /* non-blocking read */
         if (FD_ISSET(STDIN_FILENO, &read_set)) {
             stdin_open = read_to_buffer(STDIN_FILENO, &input_buffer,
-                                        (internal_open && !interactive) ? &internal_buffer : NULL);
+                                        (internal_open && do_log_data) ? &internal_buffer : NULL);
         }
         if (error_open && FD_ISSET(error->read_side, &read_set)) {
             error_open = read_to_buffer(error->read_side, &stderr_buffer,
@@ -484,13 +485,20 @@ void write_log(int fd_input, int fd_log, char *buffer, size_t size) {
     }
 }
 
-void run_log_writer(int fd_read, int fd_log, const char *original_command) {
+int should_log_data (int interactive, const char *original_command) {
+    if (!interactive && !opt_log_non_interactive_data) return 0;
+    if (original_command && !opt_log_remote_command_data) return 0;
+    return 1;
+}
+
+void run_log_writer(int fd_read, int fd_log, int interactive, const char *original_command) {
 
     if (original_command) {
         size_t s = write(fd_log, original_command, strlen(original_command));
         s = write(fd_log, "\n", 1);
-        if (!opt_log_remote_command_data) return;
     }
+
+    if (!should_log_data(interactive, original_command)) return;
 
     char *buffer = (char*) malloc(1024*sizeof(char));
     write_log(fd_read, fd_log, buffer, 1024);
@@ -543,7 +551,7 @@ void debug_process_state(const char *hint) {
             hint, getpid(), getsid(0), getpgid(0));
 }
 
-void resize_handler(int signal){
+void resize_handler(int signal) {
 
     if (SIGWINCH == signal) {
         struct winsize ts;
@@ -650,7 +658,7 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
 
-        run_log_writer(internal.read_side, fd_log, original_command);
+        run_log_writer(internal.read_side, fd_log, has_tty, original_command);
 
         exit(0);
     }
@@ -667,9 +675,10 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
     }
 
     /* do the logging */
+
     run_log_forwarder(&internal, &input, output,
                       2 == output_count ? output + 1 : NULL,
-                      original_command ? 0 : 1
+                      should_log_data(has_tty, original_command)
                      );
 
     /* reset terminal */
@@ -854,6 +863,21 @@ void parse_configuration_option(const char* start, const char *end) {
                 }
             }
         }
+
+        len = strlen("LogNonInteractiveData");
+        if (len == option_end - start + 1 && 0 == strncasecmp("LogNonInteractiveData", start, len)) {
+            if (value_start == end) {
+                if ('1' == *value_start) {
+                    opt_log_non_interactive_data = 1;
+                    return;
+                }
+                else if ('0' == *value_start) {
+                    opt_log_non_interactive_data = 0;
+                    return;
+                }
+            }
+        }
+
     }
 
     /* Noop */
@@ -936,7 +960,7 @@ void process_options(int argc, char **argv) {
         opt_command[strlen(opt_command) - 1] = '\0';
     }
 
-    /* interactive shell? */
+    /* remote command? */
     original_command = getenv("SSH_ORIGINAL_COMMAND");
     if (original_command && 0 == strcmp("(null)",original_command)) {
         original_command = NULL;
