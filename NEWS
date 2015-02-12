@@ -1,3 +1,7 @@
+ Version 0.6 (12 February 2015)
+* Optimize case when only remote command and no data has to be logged.
+* Do not log input of interactive sessions (bug introduced in version 0.5).
+
  Version 0.5 (4 November 2014)
 * Allow separate handling of non-interactive sessions.
 
