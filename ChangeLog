@@ -1,3 +1,8 @@
+2015-02-12 Konrad Bucheli <kb@open.ch>
+	* no data interception if only command and no data should be logged
+	* do not log of input on interactive sessions
+          (bug introduced in version 0.5, reported by Ruslan Popov)
+
 2014-11-04 Konrad Bucheli <kb@open.ch>
 	* Version 0.5
 

@@ -299,7 +299,7 @@ int write_from_buffer(int fd, struct list *list, int log) {
 }
 
 void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct fd_pair *output,
-                       struct fd_pair *error, int do_log_data) {
+                       struct fd_pair *error, int interactive) {
 
     int i;
 
@@ -396,7 +396,7 @@ void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct f
         /* non-blocking read */
         if (FD_ISSET(STDIN_FILENO, &read_set)) {
             stdin_open = read_to_buffer(STDIN_FILENO, &input_buffer,
-                                        (internal_open && do_log_data) ? &internal_buffer : NULL);
+                                        (internal_open && !interactive) ? &internal_buffer : NULL);
         }
         if (error_open && FD_ISSET(error->read_side, &read_set)) {
             error_open = read_to_buffer(error->read_side, &stderr_buffer,
@@ -485,21 +485,13 @@ void write_log(int fd_input, int fd_log, char *buffer, size_t size) {
     }
 }
 
-int should_log_data (int interactive, const char *original_command) {
+int should_log_data(int interactive, const char *original_command) {
     if (!interactive && !opt_log_non_interactive_data) return 0;
     if (original_command && !opt_log_remote_command_data) return 0;
     return 1;
 }
 
-void run_log_writer(int fd_read, int fd_log, int interactive, const char *original_command) {
-
-    if (original_command) {
-        size_t s = write(fd_log, original_command, strlen(original_command));
-        s = write(fd_log, "\n", 1);
-    }
-
-    if (!should_log_data(interactive, original_command)) return;
-
+void run_log_writer(int fd_read, int fd_log) {
     char *buffer = (char*) malloc(1024*sizeof(char));
     write_log(fd_read, fd_log, buffer, 1024);
     free(buffer);
@@ -572,6 +564,25 @@ void prepare_dir(const char *dir) {
     if (mkdir(dir, 0700) != 0) perror(dir);
 }
 
+int prepare_log_file(const char *log_file, const char *original_command) {
+
+    char* dir = dirname(strdup(log_file));
+    prepare_dir(dir);
+    free(dir);
+
+    int fd_log = open(log_file, O_WRONLY|O_APPEND|O_CREAT, S_IRUSR);
+    if (fd_log < 0) {
+        perror(log_file);
+    }
+    else {
+        if (original_command) {
+            size_t s = write(fd_log, original_command, strlen(original_command));
+            s = write(fd_log, "\n", 1);
+        }
+    }
+    return fd_log;
+}
+
 void start_logger(const char *log_file, const char *original_command, uid_t uid) {
 
     struct fd_pair input;
@@ -579,6 +590,23 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
     int output_count;
     int i;
     int has_tty = isatty(STDIN_FILENO);
+    int do_log_data = should_log_data(has_tty, original_command);
+    pid_t child_pid;
+
+
+    if (!do_log_data) {
+        /* we just log the command in child process and return, no remaining logging process at the end */
+        child_pid = fork();
+        if (child_pid == 0) {
+            int fd_log = prepare_log_file(log_file, original_command);
+            if (fd_log < 0) {
+                exit(1);
+            }
+            close(fd_log);
+            exit(0);
+        }
+        return;
+    }
 
     if (has_tty) {
         /* use psedo terminal for communication */
@@ -597,7 +625,7 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
     }
 
     /* child will return and execute the command */
-    pid_t child_pid = fork();
+    child_pid = fork();
     if (child_pid == 0) {
         if (has_tty) {
             /* need to be session leader to be able to set the controlling terminal later on */
@@ -642,23 +670,17 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
         }
         close(internal.write_side);
 
-        char* dir = dirname(strdup(log_file));
-        prepare_dir(dir);
-        free(dir);
-
-        int fd_log = open(log_file, O_WRONLY|O_APPEND|O_CREAT, S_IRUSR);
+        int fd_log = prepare_log_file(log_file, original_command);
+        free_options();
         if (fd_log < 0) {
-            perror(log_file);
-            free_options();
             exit(1);
         }
-        free_options();
 
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
 
-        run_log_writer(internal.read_side, fd_log, has_tty, original_command);
+        run_log_writer(internal.read_side, fd_log);
 
         exit(0);
     }
@@ -675,10 +697,9 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
     }
 
     /* do the logging */
-
     run_log_forwarder(&internal, &input, output,
                       2 == output_count ? output + 1 : NULL,
-                      should_log_data(has_tty, original_command)
+                      has_tty
                      );
 
     /* reset terminal */
