@@ -209,7 +209,7 @@ struct buffer* next_buffer(struct buffer *buffer, int index) {
     return next;
 }
 
-void emtpy_buffer(struct list *list, int index) {
+void empty_buffer(struct list *list, int index) {
 
     struct buffer *buffer = list->head;
 
@@ -287,7 +287,7 @@ int write_from_buffer(int fd, struct list *list, int log) {
         if (EINTR == errno || EAGAIN == errno || EWOULDBLOCK == errno) {
             return 1; /* try again */
         }
-        emtpy_buffer(list, index);
+        empty_buffer(list, index);
         return 0;
     }
 
