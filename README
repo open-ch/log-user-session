@@ -10,18 +10,29 @@ Current maintainer:
 Website:
    https://github.com/open-ch/log-user-session
 
+Dependencies
+-------------
+
+`autoconf`, A C compiler and `make` must be installed prior to installation. 
+On a Debian-based Linux distribution, they can be installed like this:
+
+    sudo apt-get install autoconf gcc make
 
 Installation
 ------------
 If you want to install log-user-session from source, proceed as follows:
 
-1. Run ./configure with the correct arguments
-   (see: ./configure --help)
+1. Run `./autogen.sh` to generate the `configure` file
 
-2. Run make; make install
+2. Run `./configure --help` to review any options you might like to set. Defaults are likely fine.
 
-3. Have a look at the log-user-session(8) manual for usage help, create the
-   configuration file /etc/log-user-session.conf and integrate the tool into
+3. Run `make`
+
+4. Run `sudo make install`
+
+5. Have a look at `man log-user-session` for usage help.  
+
+6. Create the configuration file /etc/log-user-session.conf and integrate the tool into
    your sshd configuration.
 
 
