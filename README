@@ -13,7 +13,9 @@ Website:
 Dependencies
 -------------
 
-`autoconf`, A C compiler and `make` must be installed prior to installation. 
+A C compiler and `make` must be installed prior to installation. You need also
+`autoconf` if you get the source code not via official release tarball (e.g.
+via git or via automatic generated github source tarballs).
 On a Debian-based Linux distribution, they can be installed like this:
 
     sudo apt-get install autoconf gcc make
@@ -22,9 +24,11 @@ Installation
 ------------
 If you want to install log-user-session from source, proceed as follows:
 
-1. Run `./autogen.sh` to generate the `configure` file
+1. Run `[ -f ./configure ] || ./autogen.sh` to generate the `configure` file if if
+   not is not ready yet
 
-2. Run `./configure --help` to review any options you might like to set. Defaults are likely fine.
+2. Run `./configure`. You might first review any options with `./configure --help`.
+   The defaults are likely fine.
 
 3. Run `make`
 
