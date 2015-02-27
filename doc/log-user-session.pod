@@ -112,6 +112,11 @@ C<LogNonInteractiveData = 1>
 
 Log also data of non-interactive sessions (by default on).
 
+=head1 CAVEATS
+
+If you grep or tail the log file of your own session, you create
+an endless loop which will make your logfile fill the filesystem
+if you do not interrupt it.
 
 =head1 AUTHORS
 
