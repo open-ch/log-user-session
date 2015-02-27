@@ -835,7 +835,7 @@ char *prepare_log_file_name(const char *template) {
     }
 }
 
-void parse_configuration_option(const char* start, const char *end) {
+void parse_configuration_option(const char *start, const char *end) {
 
     /* look for "text = text " */
 
@@ -916,7 +916,6 @@ void read_configuration_file() {
     struct stat st;
     if (0 != stat(CONFIG_FILE, &st)) {
         fprintf(stderr, "using default configuration\n");
-        perror(CONFIG_FILE);
         return;
     }
     size_t filesize = (size_t)st.st_size;
@@ -930,8 +929,10 @@ void read_configuration_file() {
 
     char *data = (char*) malloc(filesize + 1);
     size_t s = fread(data, 1, filesize, f);
-    if (0 == s && ferror(f) ) {
-        perror(CONFIG_FILE);
+    if (0 == s) {
+        if (ferror(f)) {
+            perror(CONFIG_FILE);
+        }
         fprintf(stderr, "using default configuration\n");
         return;
     }

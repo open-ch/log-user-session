@@ -1,3 +1,7 @@
+2015-02-27 Konrad Bucheli <kb@open.ch>
+	* (read_configuration_file) improve output for missing or empty
+          configuration files
+
 2015-02-12 Konrad Bucheli <kb@open.ch>
         * Version 0.6
 
