@@ -23,11 +23,11 @@ Installation
 ------------
 If you want to install log-user-session from source, proceed as follows:
 
-1. Run `[ -f ./configure ] || ./autogen.sh` to generate the `configure` file if if
-   not is not ready yet
+1. Run `[ -f ./configure ] || ./autogen.sh` to generate the `configure` file if
+   it is not ready yet
 
-2. Run `./configure`. You might first review any options with `./configure --help`.
-   The defaults are likely fine.
+2. Run `./configure`. You might first review any options with 
+   `./configure --help`. The defaults are likely fine.
 
 3. Run `make`
 
@@ -35,8 +35,8 @@ If you want to install log-user-session from source, proceed as follows:
 
 5. Have a look at `man log-user-session` for usage help.  
 
-6. Create the configuration file /etc/log-user-session.conf and integrate the tool into
-   your sshd configuration.
+6. Create the configuration file /etc/log-user-session.conf and integrate the 
+   tool into your sshd configuration.
 
 
 Supported Platforms
