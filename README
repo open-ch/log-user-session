@@ -12,7 +12,6 @@ Website:
 
 Dependencies
 -------------
-
 A C compiler and `make` must be installed prior to installation. You need also
 `autoconf` if you get the source code not via official release tarball (e.g.
 via git or via automatic generated github source tarballs).
