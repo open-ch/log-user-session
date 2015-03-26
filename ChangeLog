@@ -1,3 +1,6 @@
+2015-03-26 Konrad Bucheli <kb@open.ch>
+	* proper cleanup if parent process is killed/exits
+
 2015-02-27 Konrad Bucheli <kb@open.ch>
 	* (read_configuration_file) improve output for missing or empty
           configuration files

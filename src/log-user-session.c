@@ -278,6 +278,9 @@ int write_from_buffer(int fd, struct list *list, int log) {
 
     struct buffer *buffer = list->head;
 
+    /* make sure there is anything to write */
+    if (NULL == buffer) return 1;
+
     size_t pos = buffer->pos[index];
     size_t size = buffer->size;
 
@@ -433,22 +436,27 @@ void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct f
         internal_open = write_from_buffer(internal->write_side, &internal_buffer, 1);
     }
 
-    /* still some input? Write it out immediately 1:1*/
+    /* still some input? Write it out immediately 1:1, but bail out if there was nothing read
+       (we seam to get EAGAIN for ever if parent is killed) */
     if (internal_open) {
         while (error_open && read_to_buffer(error->read_side, &stderr_buffer, &internal_buffer)) {
+            if (NULL == stderr_buffer.head) break;
             write_from_buffer(STDERR_FILENO, &stderr_buffer, 0);
             write_from_buffer(internal->write_side, &internal_buffer, 1);
         }
         while (read_to_buffer(output->read_side, &stdout_buffer, &internal_buffer)) {
+            if (NULL == stdout_buffer.head) break;
             write_from_buffer(STDOUT_FILENO, &stdout_buffer, 0);
             write_from_buffer(internal->write_side, &internal_buffer, 1);
         }
     }
     else {
         while (error_open && read_to_buffer(error->read_side, &stderr_buffer, NULL)) {
+            if (NULL == stderr_buffer.head) break;
             write_from_buffer(STDERR_FILENO, &stderr_buffer, 0);
         }
         while (read_to_buffer(output->read_side, &stdout_buffer, NULL)) {
+            if (NULL == stdout_buffer.head) break;
             write_from_buffer(STDOUT_FILENO, &stdout_buffer, 0);
         }
     }
@@ -709,10 +717,13 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
         }
     }
 
-    /* forward exit value of child */
-    int status;
-    waitpid(child_pid, &status, 0);
-    exit(WEXITSTATUS(status));
+    /* forward exit value of child -- if there is still anyone that might be interested */
+    if (getppid() > 1) {
+        int status;
+        waitpid(child_pid, &status, 0);
+        exit(WEXITSTATUS(status));
+    }
+    exit(0);
 }
 
 void debug_uid(const char *hint) {
