@@ -1,3 +1,6 @@
+2015-03-27 Konrad Bucheli <kb@open.ch>
+	* only warn missing configuration file on very first invocation
+
 2015-03-26 Konrad Bucheli <kb@open.ch>
 	* proper cleanup if parent process is killed/exits
 

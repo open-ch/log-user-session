@@ -563,18 +563,32 @@ void resize_handler(int signal) {
 void prepare_dir(const char *dir) {
 
     struct stat st;
-    if (stat(dir, &st) == 0) return;
+    if (0 == stat(dir, &st)) return;
 
     char* parent = dirname(strdup(dir));
     prepare_dir(parent);
     free(parent);
 
-    if (mkdir(dir, 0700) != 0) perror(dir);
+    if (0 != mkdir(dir, 0700)) perror(dir);
+}
+
+void print_config_file_warning(const char *config_file, const char *log_dir) {
+    /* print a warning if there is no config file and no directory -- this is the very first startup */
+
+    struct stat st;
+    if (0 == stat(log_dir, &st)) return;
+    if (0 == stat(config_file, &st)) return;
+
+    fprintf(stderr, "using default configuration\n");
+    return;
 }
 
 int prepare_log_file(const char *log_file, const char *original_command) {
 
     char* dir = dirname(strdup(log_file));
+
+    print_config_file_warning(CONFIG_FILE, dir);
+
     prepare_dir(dir);
     free(dir);
 
@@ -926,7 +940,6 @@ void read_configuration_file() {
     /* read all file content */
     struct stat st;
     if (0 != stat(CONFIG_FILE, &st)) {
-        fprintf(stderr, "using default configuration\n");
         return;
     }
     size_t filesize = (size_t)st.st_size;
@@ -943,8 +956,9 @@ void read_configuration_file() {
     if (0 == s) {
         if (ferror(f)) {
             perror(CONFIG_FILE);
+            fprintf(stderr, "using default configuration\n");
         }
-        fprintf(stderr, "using default configuration\n");
+        free(data);
         return;
     }
     data[filesize] = '\0';
