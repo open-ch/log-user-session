@@ -1,3 +1,6 @@
+2015-06-09 Konrad Bucheli <kb@open.ch>
+        * Version 0.7
+
 2015-03-27 Konrad Bucheli <kb@open.ch>
 	* only warn missing configuration file on very first invocation
 
