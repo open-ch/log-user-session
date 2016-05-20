@@ -83,6 +83,7 @@
  *******************************************************************************/
 
 #define _GNU_SOURCE
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
@@ -95,6 +96,7 @@
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
