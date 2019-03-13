@@ -114,13 +114,15 @@
     #define CONFIG_FILE       "/etc/log-user-session.conf"
 #endif
 
-char *original_command  = NULL;
-char *opt_command       = NULL;
-char *opt_shell         = NULL;
-char *opt_user          = NULL;
-char *opt_client        = NULL;
-char *opt_logfile       = NULL;
-char **opt_argv         = NULL;
+char *original_command          = NULL;
+char *opt_command               = NULL;
+char *opt_shell                 = NULL;
+char *opt_user                  = NULL;
+char *opt_client                = NULL;
+char *opt_logfile               = NULL;
+char **opt_argv                 = NULL;
+char **opt_command_whitelist    = NULL;
+int  *whitelist_size            = NULL;
 
 int opt_log_remote_command_data = 1;
 int opt_log_non_interactive_data = 1;
@@ -165,6 +167,14 @@ void free_options() {
         }
         free(opt_argv);
     }
+    if (opt_command_whitelist) {
+        int i;
+        for (i = 0; i < *whitelist_size; i++) {
+            free(opt_command_whitelist[i]);
+        }
+        free(opt_command_whitelist);
+    }
+    if (whitelist_size) free(whitelist_size);
 }
 
 struct buffer *new_buffer() {
@@ -495,8 +505,24 @@ void write_log(int fd_input, int fd_log, char *buffer, size_t size) {
     }
 }
 
+int is_command_whitelisted(const char *original_command) {
+    // retrieve first token which is the command
+    char *command = strtok(strdup(original_command), " \n\t");
+
+    int i;
+    for (i = 0; i < *whitelist_size ; i++) {
+        if ( !strcmp(command, opt_command_whitelist[i]) ) {
+            free(command);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int should_log_data(int interactive, const char *original_command) {
     if (!interactive && !opt_log_non_interactive_data) return 0;
+    if (!interactive && *whitelist_size && is_command_whitelisted(original_command)) return 0;
     if (original_command && !opt_log_remote_command_data) return 0;
     return 1;
 }
@@ -926,6 +952,34 @@ void parse_configuration_option(const char *start, const char *end) {
             }
         }
 
+        len = strlen("NonInteractiveCommandWhitelist");
+        if (len == option_end - start + 1 && 0 == strncasecmp("NonInteractiveCommandWhitelist", start, len)) {
+            char *whitelist = strndup(value_start, end - value_start + 1);
+            char delim[] = ",";
+            int count = 0;
+
+            /* Init array of whitelists */
+            char *count_temp = strndup(value_start, end - value_start + 1);
+            while( (count_temp = strchr(count_temp, delim[0])) != NULL) {
+               count++;
+               count_temp++;
+            }
+            opt_command_whitelist = (char**) malloc( (count + 1) * sizeof(char*));
+            whitelist_size = (int*) malloc(sizeof(int*));
+            *whitelist_size = count+1;
+
+            /* Parse whitelists */
+            char *token = strtok(whitelist, delim);
+            int i=0;
+            while (token != NULL){
+                opt_command_whitelist[i++] = strdup(token);
+                token = strtok(NULL, delim);
+            }
+            free(count_temp);
+            free(whitelist);
+            free(token);
+            return;
+        }
     }
 
     /* Noop */
