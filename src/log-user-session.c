@@ -99,6 +99,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 
 /* log directory is predefined so that it cannot be change by the user */
@@ -301,6 +302,24 @@ int write_from_buffer(int fd, struct list *list, int log) {
     list->head = next_buffer(buffer, index);
     if (NULL == list->head) list->tail = NULL;
     return 1;
+}
+
+int is_valid_client_ip(const char *ip) {
+    
+    struct sockaddr_in sa;
+    int result = -1;
+
+    // Check if we have a valid IPv4
+    if (strchr(ip, '.') != NULL) {
+        result = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    }
+
+    // Check if we have a valid IPv6
+    if (strchr(ip, ':') != NULL) {
+        result = inet_pton(AF_INET6, ip, &(sa.sin_addr));
+    }
+    
+    return result;
 }
 
 void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct fd_pair *output,
@@ -1045,7 +1064,12 @@ void process_options(int argc, char **argv) {
     if (ssh_client && 0 != strcmp("(null)",ssh_client)) {
         int i;
         for (i = 0; ssh_client[i] && !isspace(ssh_client[i]); i++);
-        opt_client = strndup(ssh_client, i);
+
+        // validate that the client IP is indeed a valid it
+        char *client_ip = strndup(ssh_client, i);
+        if (is_valid_client_ip(client_ip) == 1) {
+            opt_client = client_ip;
+        }
     }
 
     /* configured options */
