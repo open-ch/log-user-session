@@ -1070,6 +1070,7 @@ void process_options(int argc, char **argv) {
         if (is_valid_client_ip(client_ip) == 1) {
             opt_client = client_ip;
         }
+        free(client_ip)
     }
 
     /* configured options */
