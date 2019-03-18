@@ -977,7 +977,6 @@ void parse_configuration_option(const char *start, const char *end) {
             }
             free(count_temp);
             free(whitelist);
-            free(token);
             return;
         }
     }
