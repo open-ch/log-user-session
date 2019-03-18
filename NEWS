@@ -1,4 +1,10 @@
- Version 0.7 (9 June 2015)
+ Version 0.8 (18 March 2019)
+* set prctl PR_SET_DEATHSIG for the log-user-session processes
+* properly sanitize ssh_client before storing in opt_client
+* adds NonInteractiveCommandWhitelist to log only the command of
+  the listed commands and not the output
+
+Version 0.7 (9 June 2015)
 * proper cleanup if parent process is killed/exits
 * improve output for missing or empty configuration files
 
@@ -19,5 +25,5 @@
 * Fix screen usage.
 
  Version 0.1 (7 March 2014)
-* Initial release of log-user-session, a tool which allows log user sessions 
+* Initial release of log-user-session, a tool which allows log user sessions
   (e.g. ssh sessions) tamper-proof for audit purposes.
