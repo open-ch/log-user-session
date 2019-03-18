@@ -100,6 +100,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/prctl.h>
 
 
 /* log directory is predefined so that it cannot be change by the user */
@@ -719,6 +720,9 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
             exit(1);
         }
 
+        /* setup parent-death signal to SIGTERM, this prevents stale log childrens */
+        prctl(PR_SET_PDEATHSIG, SIGTERM);
+
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
@@ -738,6 +742,9 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
         child_tty = input.write_side;
         signal(SIGWINCH, resize_handler);
     }
+
+    /* setup parent-death signal to SIGTERM, this prevents stale log childrens */
+    prctl(PR_SET_PDEATHSIG, SIGTERM);
 
     /* do the logging */
     run_log_forwarder(&internal, &input, output,
