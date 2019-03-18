@@ -305,7 +305,7 @@ int write_from_buffer(int fd, struct list *list, int log) {
 }
 
 int is_valid_client_ip(const char *ip) {
-    
+
     struct sockaddr_in sa;
     int result = -1;
 
@@ -318,7 +318,7 @@ int is_valid_client_ip(const char *ip) {
     if (strchr(ip, ':') != NULL) {
         result = inet_pton(AF_INET6, ip, &(sa.sin_addr));
     }
-    
+
     return result;
 }
 
@@ -1068,7 +1068,7 @@ void process_options(int argc, char **argv) {
         // validate that the client IP is indeed a valid it
         char *client_ip = strndup(ssh_client, i);
         if (is_valid_client_ip(client_ip) == 1) {
-            opt_client = client_ip;
+            opt_client = strdup(client_ip);
         }
         free(client_ip)
     }
