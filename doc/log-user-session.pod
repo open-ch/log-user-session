@@ -112,6 +112,13 @@ C<LogNonInteractiveData = 1>
 
 Log also data of non-interactive sessions (by default on).
 
+
+=head2 NonInteractiveCommandWhitelist
+
+C<NonInteractiveCommandWhitelist = rsync,ps,scp>
+
+Log only the command of the aforementioned whitelisted commands and not the output (by default empty).
+
 =head1 CAVEATS
 
 If you grep or tail the log file of your own session, you create
