@@ -83,6 +83,7 @@
  *******************************************************************************/
 
 #define _GNU_SOURCE
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
@@ -95,8 +96,11 @@
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/prctl.h>
 
 
 /* log directory is predefined so that it cannot be change by the user */
@@ -112,13 +116,15 @@
     #define CONFIG_FILE       "/etc/log-user-session.conf"
 #endif
 
-char *original_command  = NULL;
-char *opt_command       = NULL;
-char *opt_shell         = NULL;
-char *opt_user          = NULL;
-char *opt_client        = NULL;
-char *opt_logfile       = NULL;
-char **opt_argv         = NULL;
+char *original_command          = NULL;
+char *opt_command               = NULL;
+char *opt_shell                 = NULL;
+char *opt_user                  = NULL;
+char *opt_client                = NULL;
+char *opt_logfile               = NULL;
+char **opt_argv                 = NULL;
+char **opt_command_whitelist    = NULL;
+int  *whitelist_size            = NULL;
 
 int opt_log_remote_command_data = 1;
 int opt_log_non_interactive_data = 1;
@@ -163,6 +169,14 @@ void free_options() {
         }
         free(opt_argv);
     }
+    if (opt_command_whitelist) {
+        int i;
+        for (i = 0; i < *whitelist_size; i++) {
+            free(opt_command_whitelist[i]);
+        }
+        free(opt_command_whitelist);
+    }
+    if (whitelist_size) free(whitelist_size);
 }
 
 struct buffer *new_buffer() {
@@ -299,6 +313,24 @@ int write_from_buffer(int fd, struct list *list, int log) {
     list->head = next_buffer(buffer, index);
     if (NULL == list->head) list->tail = NULL;
     return 1;
+}
+
+int is_valid_client_ip(const char *ip) {
+
+    struct sockaddr_in sa;
+    int result = -1;
+
+    // Check if we have a valid IPv4
+    if (strchr(ip, '.') != NULL) {
+        result = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    }
+
+    // Check if we have a valid IPv6
+    if (strchr(ip, ':') != NULL) {
+        result = inet_pton(AF_INET6, ip, &(sa.sin_addr));
+    }
+
+    return result;
 }
 
 void run_log_forwarder(struct fd_pair *internal, struct fd_pair *input, struct fd_pair *output,
@@ -493,8 +525,24 @@ void write_log(int fd_input, int fd_log, char *buffer, size_t size) {
     }
 }
 
+int is_command_whitelisted(const char *original_command) {
+    // retrieve first token which is the command
+    char *command = strtok(strdup(original_command), " \n\t");
+
+    int i;
+    for (i = 0; i < *whitelist_size ; i++) {
+        if ( !strcmp(command, opt_command_whitelist[i]) ) {
+            free(command);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int should_log_data(int interactive, const char *original_command) {
     if (!interactive && !opt_log_non_interactive_data) return 0;
+    if (!interactive && *whitelist_size && is_command_whitelisted(original_command)) return 0;
     if (original_command && !opt_log_remote_command_data) return 0;
     return 1;
 }
@@ -698,6 +746,9 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
             exit(1);
         }
 
+        /* setup parent-death signal to SIGTERM, this prevents stale log childrens */
+        prctl(PR_SET_PDEATHSIG, SIGTERM);
+
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
@@ -717,6 +768,9 @@ void start_logger(const char *log_file, const char *original_command, uid_t uid)
         child_tty = input.write_side;
         signal(SIGWINCH, resize_handler);
     }
+
+    /* setup parent-death signal to SIGTERM, this prevents stale log childrens */
+    prctl(PR_SET_PDEATHSIG, SIGTERM);
 
     /* do the logging */
     run_log_forwarder(&internal, &input, output,
@@ -924,6 +978,33 @@ void parse_configuration_option(const char *start, const char *end) {
             }
         }
 
+        len = strlen("NonInteractiveCommandWhitelist");
+        if (len == option_end - start + 1 && 0 == strncasecmp("NonInteractiveCommandWhitelist", start, len)) {
+            char *whitelist = strndup(value_start, end - value_start + 1);
+            char delim[] = ",";
+            int count = 0;
+
+            /* Init array of whitelists */
+            char *count_temp = strndup(value_start, end - value_start + 1);
+            while( (count_temp = strchr(count_temp, delim[0])) != NULL) {
+               count++;
+               count_temp++;
+            }
+            opt_command_whitelist = (char**) malloc( (count + 1) * sizeof(char*));
+            whitelist_size = (int*) malloc(sizeof(int*));
+            *whitelist_size = count+1;
+
+            /* Parse whitelists */
+            char *token = strtok(whitelist, delim);
+            int i=0;
+            while (token != NULL){
+                opt_command_whitelist[i++] = strdup(token);
+                token = strtok(NULL, delim);
+            }
+            free(count_temp);
+            free(whitelist);
+            return;
+        }
     }
 
     /* Noop */
@@ -1043,7 +1124,13 @@ void process_options(int argc, char **argv) {
     if (ssh_client && 0 != strcmp("(null)",ssh_client)) {
         int i;
         for (i = 0; ssh_client[i] && !isspace(ssh_client[i]); i++);
-        opt_client = strndup(ssh_client, i);
+
+        // validate that the client IP is indeed a valid it
+        char *client_ip = strndup(ssh_client, i);
+        if (is_valid_client_ip(client_ip) == 1) {
+            opt_client = strdup(client_ip);
+        }
+        free(client_ip);
     }
 
     /* configured options */

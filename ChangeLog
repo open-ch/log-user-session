@@ -1,5 +1,12 @@
+2019-03-18 Daniel Aschwanden <daa@open.ch>
+	* Version 0.8
+	* set prctl PR_SET_DEATHSIG for the log-user-session processes
+	* properly sanitize ssh_client before storing in opt_client
+	* adds NonInteractiveCommandWhitelist to log only the command of
+	  the listed commands and not the output
+
 2015-06-09 Konrad Bucheli <kb@open.ch>
-        * Version 0.7
+	* Version 0.7
 
 2015-03-27 Konrad Bucheli <kb@open.ch>
 	* only warn missing configuration file on very first invocation
@@ -33,13 +40,13 @@
 	* (process_options) fix login shell detection
 
 2014-05-02 Konrad Bucheli <kb@open.ch>
-        * Version 0.3
+	* Version 0.3
 
 2014-05-02 Konrad Bucheli <kb@open.ch>
 	* (run_log_forwarder) avoid runaway processes
 
 2014-04-08 Konrad Bucheli <kb@open.ch>
-        * Version 0.2
+	* Version 0.2
 
 2014-04-08 Konrad Bucheli <kb@open.ch>
 	* (start_logger) set owner of new tty to user (fixes screen)
