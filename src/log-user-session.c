@@ -590,7 +590,7 @@ void set_raw_input(int fd, struct termios *old_term) {
      *       No 8th-bit stripping or parity error handling.
      *       Disable START/STOP output flow control. */
     tnew.c_iflag &= ~(BRKINT | ICRNL | IGNBRK | IGNCR | INLCR | INPCK | ISTRIP | IXON | PARMRK);
-
+    tnew.c_oflag &= ~OPOST;
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &tnew);
 }
 

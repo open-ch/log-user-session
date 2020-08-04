@@ -125,6 +125,13 @@ If you grep or tail the log file of your own session, you create
 an endless loop which will make your logfile fill the filesystem
 if you do not interrupt it.
 
+Note that there are tools which use ANSI codes to clear the screen.
+Common examples are screen, tmux and vi. If you look at a log file
+containing such ANSI codes with a tool that outputs to the terminal
+(e.g. cat or tail), then the terminal will interpret these commands
+and thus not everything will be visible. To avoid this problem use
+a standalone editor/viewer (e.g. less or vi) to check the log files.
+
 =head1 AUTHORS
 
 =over
