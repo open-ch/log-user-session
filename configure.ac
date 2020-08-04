@@ -1,4 +1,4 @@
-AC_INIT([log-user-session],[0.8])
+AC_INIT([log-user-session],[0.9])
 AM_INIT_AUTOMAKE
 
 # Checks for programs.
