@@ -1,3 +1,8 @@
+2020-08-04 Konrad Bucheli <kb@open.ch>
+	* Version 0.9
+	* fix terminal getting garbled by tmux by removing OPOST flag
+	* hint the interpretation of ANSI codes ty the terminal
+
 2019-03-18 Daniel Aschwanden <daa@open.ch>
 	* Version 0.8
 	* set prctl PR_SET_DEATHSIG for the log-user-session processes
