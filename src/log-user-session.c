@@ -318,6 +318,7 @@ int write_from_buffer(int fd, struct list *list, int log) {
 int is_valid_client_ip(const char *ip) {
 
     struct sockaddr_in sa;
+    struct sockaddr_in6 sa6;
     int result = -1;
 
     // Check if we have a valid IPv4
@@ -327,7 +328,7 @@ int is_valid_client_ip(const char *ip) {
 
     // Check if we have a valid IPv6
     if (strchr(ip, ':') != NULL) {
-        result = inet_pton(AF_INET6, ip, &(sa.sin_addr));
+        result = inet_pton(AF_INET6, ip, &(sa6.sin6_addr));
     }
 
     return result;
