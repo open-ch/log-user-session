@@ -1,6 +1,12 @@
+2020-10-16 Konrad Bucheli <kb@open.ch>
+	* Version 1.0
+	* fix potential buffer overflow when checking IPv6 addresses
+	  (reported by kmeaw)
+
 2020-08-04 Konrad Bucheli <kb@open.ch>
 	* Version 0.9
 	* fix terminal getting garbled by tmux by removing OPOST flag
+	  (patch by Nicholas Marriott)
 	* hint the interpretation of ANSI codes ty the terminal
 
 2019-03-18 Daniel Aschwanden <daa@open.ch>
